@@ -1,1 +1,1 @@
-# eos-smart-contracts
+# eos-smart-contracts for horuspay.io
