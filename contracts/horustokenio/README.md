@@ -34,6 +34,14 @@ Standard currency issue action.  Issues tokens to specified accounts.  Requires 
 
 Standard currency transfer action.  Transfer tokens between two accounts.
 
+### stakehorus
+
+To be implemented
+
+### unstakehorus
+
+To be implemented
+
 ---
 To build in-source with eos, place the `eosio.token` and `horustokenio` directories into `/eos/contracts` and run `make`
 

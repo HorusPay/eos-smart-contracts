@@ -134,8 +134,9 @@ namespace horuspaytoken {
          }
       } // tot_itr can be invalid, should go out of scope
 
+      // TODO: Add refund capability here
 
-      // TODO: Do the actual transfer!
+      // Do the actual transfer
       auto transfer_amount = stake_horus_delta;
       if ( asset(0, HORUS_SYMBOL) < transfer_amount ) {
          INLINE_ACTION_SENDER(eosio::token, transfer)( horuspaytoken::code, {source_stake_from, N(active)},
