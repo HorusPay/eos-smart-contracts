@@ -14,7 +14,7 @@ To view account balance
 To transfer tokens (example: 1.0000 HORUS)
 
 ```bash
-cleos push action horustokenio transfer '["from-account","to-account","1.0000 HORUS","memo"]' -p from-account
+cleos push action horustokenio transfer '["from","to","1.0000 HORUS","memo"]' -p from
 ```
 
 ## Description
@@ -36,11 +36,23 @@ Standard currency transfer action.  Transfer tokens between two accounts.
 
 ### stakehorus
 
-To be implemented
+Stake your tokens for yourself or another account.
+
+```bash
+cleos push action horustokenio stakehorus '["from","receiver","1.0000 HORUS"]' -p from
+```
 
 ### unstakehorus
 
-To be implemented
+Unstake tokens back to the staker
+
+```bash
+cleos push action horustokenio unstakehorus '["from","receiver","1.0000 HORUS"]' -p from
+```
+
+### refundhorus
+
+Called when unstaking to refund the staked tokens over a period of time.
 
 ---
 To build in-source with eos, place the `eosio.token` and `horustokenio` directories into `/eos/contracts` and run `make`

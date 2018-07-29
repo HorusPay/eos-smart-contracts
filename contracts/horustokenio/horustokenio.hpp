@@ -4,16 +4,20 @@
 *  Telegram: @jackdisalvatore
 */
 #include <eosio.token/eosio.token.hpp>
+#include <string>
 
 #define HORUS_SYMBOL S(4,HORUS)
-#define HORUS N(HORUS)
 
 
 namespace horuspaytoken {
 
 using eosio::asset;
+using eosio::symbol_type;
+using eosio::string_to_symbol;
+using std::string;
 
-static constexpr uint64_t code = N(mytokenaccnt/*change this to real horustokenio account*/);
+static constexpr uint64_t code = N(horustokenio/*change this to real horustokenio account*/);
+static constexpr uint64_t stakingaccount = N(horustokenio/*change this to real horustokenio account*/);
 
 
 class horustokenio : public eosio::token {
@@ -27,13 +31,15 @@ public:
                   bool         transfer );
 
    void unstakehorus( account_name from, account_name receiver,
-                                    asset unstake_horus_quantity );
+                                         asset unstake_horus_quantity );
 
    void refundhorus( const account_name owner );
 
+   /*void rmtoken( const string sym );*/
+
 private:
 
-   void changebw( account_name from, account_name receiver,
+   void change_resource( account_name from, account_name receiver,
                   const asset   stake_horus_delta,
                   bool          transfer);
 

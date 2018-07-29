@@ -79,6 +79,12 @@
         {"name":"owner", "type":"account_name"}
      ]
   },{
+     "name": "rmtoken",
+     "base": "",
+     "fields": [
+        {"name":"sym", "type":"string"}
+     ]
+  },{
       "name": "account",
       "base": "",
       "fields": [
@@ -117,6 +123,10 @@
     },{
       "name": "refundhorus",
       "type": "refundhorus",
+      "ricardian_contract": ""
+    },{
+      "name": "rmtoken",
+      "type": "rmtoken",
       "ricardian_contract": ""
     }
   ],
