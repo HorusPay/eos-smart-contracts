@@ -25,6 +25,6 @@ namespace horuspaytoken {
       statstable.erase(st);
    }*/
 
-} /// namespace horuspay
+} /// namespace horuspaytoken
 
 EOSIO_ABI( horuspaytoken::horustokenio,(create)(issue)(transfer)(stakehorus)(unstakehorus)(refundhorus)/*(rmtoken)*/ )
