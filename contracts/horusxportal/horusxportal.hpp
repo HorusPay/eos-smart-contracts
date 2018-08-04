@@ -6,49 +6,87 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/crypto.h>
 
+
 #include <string>
 
 
-namespace eosio {
+namespace horuspay {
+
+   using eosio::print;
+   using eosio::name;
+   using eosio::string_to_name;
+   using eosio::multi_index;
+   using eosio::indexed_by;
+   using eosio::const_mem_fun;
+   using eosio::permission_level;
 
    using std::string;
 
 
-class horusxportal : public contract {
+class horusxportal : public eosio::contract {
 
 public:
 
    explicit horusxportal( account_name self ) : contract( self ) {}
 
-   void memberreg( uint64_t member_id, name member_new, const string agreed_terms );
+   enum member_types {
+      CLIENT =  0,
+      VENDOR /* 1 */
+   };
 
-   void memberunreg( name member_leaving );
+   void memberreg( uint64_t         member_id,
+                   uint32_t         member_type,
+                   name             member_new,
+                   const string&    company_name,
+                   const string&    agreed_terms );
+
+   void memberunreg( name member_leaving, uint32_t member_type );
 
 private:
 
    const string agreement_terms_hash{"successhash"};
 
-   // @abi table members i64
-   struct member {
-      uint64_t    member_id;
-      checksum256 member_sha;     /** hash of account name  **/
-      name        member_account; /** eos account name     **/
-      string      agreed_terms;   /** hash of agreed terms **/
+   static eosio::key256 to_key( const checksum256& account_sha ) {
+      const uint64_t* ui64 = reinterpret_cast<const uint64_t*>( &account_sha );
+      return eosio::key256::make_from_word_sequence<uint64_t>( ui64[0], ui64[1], ui64[2], ui64[3] );
+   }
 
-      uint64_t primary_key() const { return member_id; }
-      eosio::key256 by_account_sha() const { return to_key( member_sha ); }
+   // @abi table clients i64
+   struct client {
+      uint64_t    id;
+      checksum256 account_sha;
+      name        account;
+      string      company_name = "Unregistered";
+      string      agreed_terms;
 
-      static eosio::key256 to_key( const checksum256& member_sha ) {
-         const uint64_t* ui64 = reinterpret_cast<const uint64_t*>( &member_sha );
+      uint64_t primary_key() const { return id; }
+      eosio::key256 by_account_sha() const { return to_key( account_sha ); }
 
-         return eosio::key256::make_from_word_sequence<uint64_t>( ui64[0], ui64[1], ui64[2], ui64[3] );
-      }
+      friend eosio::key256 to_key( const checksum256& account_sha );
    };
 
-   typedef multi_index<N(members), member,
-      indexed_by<N( accountsha ), const_mem_fun<member, eosio::key256, &member::by_account_sha> >
-   > member_table;
+   // @abi table vendors i64
+   struct vendor {
+      uint64_t    id;
+      checksum256 account_sha;
+      name        account;
+      string      company_name = "Unregistered";
+      string      agreed_terms;
+
+      uint64_t primary_key() const { return id; }
+      eosio::key256 by_account_sha() const { return to_key( account_sha ); }
+
+      friend eosio::key256 to_key( const checksum256& account_sha );
+   };
+
+   typedef multi_index<N(clients), client,
+      indexed_by<N( accountsha ), const_mem_fun<client, eosio::key256, &client::by_account_sha> >
+   > client_table;
+   typedef multi_index<N(vendors), vendor,
+      indexed_by<N( accountsha ), const_mem_fun<vendor, eosio::key256, &vendor::by_account_sha> >
+   > vendor_table;
+
 
 };
 
-} /// namespace eosio
+} /// namespace horuspay
