@@ -6,7 +6,7 @@ New members can join via the `memberreg` action.
 
 ### Member Schema
 
-peusdo javascript data structure schema
+pseudo javascript data structure schema
 
 ```javascript
 client = {
