@@ -25,8 +25,8 @@ using std::string;
 using std::map;
 using std::pair;
 
-static constexpr uint64_t code = N(horustokenio/*change this to real horustokenio account*/);
-static constexpr uint64_t stakingaccount = N(horustokenio/*change this to real horustokenio account*/);
+static constexpr uint64_t code = N(horustokenio);
+static constexpr uint64_t stakingaccount = N(horustokenio);
 
 
 class horustokenio : public eosio::token {
