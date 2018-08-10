@@ -72,8 +72,9 @@ namespace horuspaytoken {
     ***************************************************************************/
 
 
-   void inline horustokenio::delegate_horus( account_name& from, account_name& receiver,
-                                              const asset& stake_horus_delta ) {
+   void inline horustokenio::delegate_horus( account_name& from,
+                                             account_name& receiver,
+                                             const asset&  stake_horus_delta ) {
       staked_horus_table staked_horus( _self, from);
 
       auto itr = staked_horus.find( receiver );
@@ -99,8 +100,9 @@ namespace horuspaytoken {
    }
 
 
-   void inline horustokenio::update_user_resources( account_name& from, account_name& receiver,
-                                                    const asset& stake_horus_delta ) {
+   void inline horustokenio::update_user_resources( account_name& from,
+                                                    account_name& receiver,
+                                                    const asset&  stake_horus_delta ) {
       user_resources_table totals_tbl( _self, receiver );
 
       auto tot_itr = totals_tbl.find( receiver );
@@ -123,8 +125,13 @@ namespace horuspaytoken {
    };
 
 
-   void inline horustokenio::create_or_update_refund( account_name& from, account_name& receiver, const asset& stake_horus_delta, bool transfer, account_name& source_stake_from )  {
-      if ( horuspaytoken::stakingaccount != source_stake_from ) { //for stakingaccount both transfer and refund make no sense
+   void inline horustokenio::create_or_update_refund( account_name& from,
+                                                      account_name& receiver,
+                                                      const asset&  stake_horus_delta,
+                                                      bool          transfer,
+                                                      account_name& source_stake_from )  {
+      //for stakingaccount both transfer and refund make no sense
+      if ( horuspaytoken::stakingaccount != source_stake_from ) {
          refunds_table refunds_tbl( _self, from );
          auto req = refunds_tbl.find( from );
 
@@ -189,7 +196,8 @@ namespace horuspaytoken {
          auto transfer_amount = stake_horus_delta;
          if ( asset(0, HORUS_SYMBOL) < transfer_amount ) {
             INLINE_ACTION_SENDER(horustokenio, transfer)( code, {source_stake_from, N(active)},
-               { source_stake_from, horuspaytoken::stakingaccount/* change this to the account accepting the stake*/, asset(transfer_amount), string("staking HORUS") } );
+               { source_stake_from, horuspaytoken::stakingaccount/* IMPORTANT - Change this to the account accepting the stake! */,
+                                    asset(transfer_amount), string("staking HORUS") } );
          }
       }
    };
@@ -248,7 +256,7 @@ namespace horuspaytoken {
       // consecutive missed blocks.
 
       INLINE_ACTION_SENDER(horuspaytoken::horustokenio, transfer)( code, {horuspaytoken::stakingaccount,N(active)},
-                                                    { horuspaytoken::stakingaccount, req->owner, req->horus_amount, string("unstake HORUS") } );
+                           { horuspaytoken::stakingaccount, req->owner, req->horus_amount, string("unstake HORUS") } );
 
       refunds_tbl.erase( req );
    }
