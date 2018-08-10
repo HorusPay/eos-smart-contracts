@@ -6,6 +6,7 @@
 #include <eosio.token/eosio.token.hpp>
 #include <string>
 
+
 #define HORUS_SYMBOL S(4,HORUS)
 
 
@@ -14,7 +15,15 @@ namespace horuspaytoken {
 using eosio::asset;
 using eosio::symbol_type;
 using eosio::string_to_symbol;
+using eosio::multi_index;
+using eosio::indexed_by;
+using eosio::const_mem_fun;
+using eosio::bytes;
+using eosio::print;
+using eosio::permission_level;
 using std::string;
+using std::map;
+using std::pair;
 
 static constexpr uint64_t code = N(horustokenio/*change this to real horustokenio account*/);
 static constexpr uint64_t stakingaccount = N(horustokenio/*change this to real horustokenio account*/);
@@ -26,12 +35,14 @@ public:
 
    explicit horustokenio( account_name self ) : eosio::token( self ) {}
 
-   void stakehorus( account_name from, account_name receiver,
-                  asset stake_horus_quantity,
-                  bool         transfer );
+   void stakehorus( account_name from,
+                    account_name receiver,
+                    asset        stake_horus_quantity,
+                    bool         transfer );
 
-   void unstakehorus( account_name from, account_name receiver,
-                                         asset unstake_horus_quantity );
+   void unstakehorus( account_name from,
+                      account_name receiver,
+                      asset        unstake_horus_quantity );
 
    void refundhorus( const account_name owner );
 
@@ -39,27 +50,25 @@ public:
 
 private:
 
-   void change_resource( account_name from, account_name receiver,
-                  const asset   stake_horus_delta,
-                  bool          transfer);
+   void inline delegate_horus( account_name& from,
+                               account_name& receiver,
+                               const asset&  stake_horus_delta );
 
-/*   struct stake {
-      uint64_t id;
-      account_name user;
-      uint64_t amount;
-      uint32_t timestamp;
-      uint32_t completion_time;
-      bool autorenew = 0;
+   void inline update_user_resources( account_name& from,
+                                      account_name& receiver,
+                                      const asset& stake_horus_delta );
 
-      auto primary_key()const { return id; }
-      account_name get_user()const { return user; }
-   };
+   void inline create_or_update_refund( account_name& from,
+                                        account_name& receiver,
+                                        const asset&  stake_horus_delta,
+                                        bool          transfer,
+                                        account_name& source_stake_from );
 
-   typedef eosio::multi_index<N(staketbl), stake,
-      indexed_by< N(byuser), const_mem_fun<stake, account_name, &stake::get_user >>
-   > staketbl;
-*/
+   void change_resource( account_name from,
+                         account_name receiver,
+                         const asset  stake_horus_delta,
+                         bool         transfer );
 
 };
 
-}
+}   // namespace horuspaytoken

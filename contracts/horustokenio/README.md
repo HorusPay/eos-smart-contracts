@@ -1,15 +1,17 @@
-# horustokenio contract
+Q# horustokenio contract
 
 Mainnet account running this contract: `horustokenio`
-Token Symbols created: `HORUS`
-Issuer account: `horustokenio`
+Token Symbol: `HORUS`
 abi:
+
+Jungle Testnet account running this contract: `horustokenio`
+Token Symbol: `HORUS`
 
 ## How to use this contract
 
 To view account balance
 
-`cleos get currency balance horustokenio account-name-here HORUS`
+`cleos get currency balance horustokenio account-name HORUS`
 
 To transfer tokens (example: 1.0000 HORUS)
 
