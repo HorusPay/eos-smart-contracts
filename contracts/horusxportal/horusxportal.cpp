@@ -6,130 +6,112 @@
 #include "horusxportal.hpp"
 
 
-namespace horuspay {
+namespace horuspayportal {
+
+/***************************************************************************************************
+ *                                   F U N C T I O N S
+ **************************************************************************************************/
+
+void inline horusxportal::check_resources( name& account_name ) {
+   print("Checking Resources\n");
+   user_resources_table resources( N(horustokenio), account_name );
+   auto user_resource_itr = resources.find( account_name );
+
+   eosio_assert( user_resource_itr->horus_weight >= asset( 10000 , HORUS_SYMBOL ),
+                 "Need 1 HORUS staked" );
+
+   print(name{account_name}, " has ", user_resource_itr->horus_weight, "\n");
+}
+
+/***************************************************************************************************
+ *                                     A C T I O N S
+ **************************************************************************************************/
 
 // @abi action
-void horusxportal::memberreg( uint64_t         member_id,
-                              uint32_t         member_type,
-                              name             member_new,
-                              const string&    company_name = "Unregistered",
-                              const string&    agreed_terms = "no hash entered" ) {
+void horusxportal::clientreg( uint64_t         client_id,
+                              name             client_account,
+                              const string&    client_email,
+                              const string&    client_company_name,
+                              const string&    client_country,
+                              const string&    client_region,
+                              const string&    agreed_terms = "no hash provided" ) {
    require_auth( _self );
-   require_auth( member_new );
-   require_recipient( member_new );
+   require_auth( client_account );
+   require_recipient( client_account );
 
    eosio_assert( !agreement_terms_hash.compare(agreed_terms) , "terms do not match");
-   eosio_assert( member_type == CLIENT || member_type == VENDOR, "invalid member type");
+   check_resources( client_account );
 
    checksum256 cs{};
-   sha256( const_cast<char*>( member_new.to_string().c_str() ), sizeof(member_new), &cs );
-   printhex(&cs, sizeof(cs));
+   sha256( const_cast<char*>( client_account.to_string().c_str() ), sizeof(client_account), &cs );
 
    print("\n**==== DEBUG ====**\n");
-   print("Member ID: ", member_id, "\n");
-   print("Member Type: ", member_type, "\n");
-   print("member_account: ", name{member_new}, "\n");
-   print("company: ", company_name.c_str(), "\n");
+   print("client_id: ", client_id, "\n");
+   print("client_account: ", name{client_account}, "\n");
+   print("client_account sha: ");   printhex(&cs, sizeof(cs)); print("\n");
+   print("client_email: ", client_email.c_str(), "\n");
+   print("client_company_name: ", client_company_name.c_str(), "\n");
+   print("client_country: ", client_country.c_str(), "\n");
+   print("client_region: ", client_region.c_str(), "\n");
+   print("**===============**\n");
 
    // Register Client
-   if ( member_type == CLIENT ) {
-      client_table client_members( _self, _self );
+   client_table clients( _self, _self );
 
-      auto members_account_index = client_members.get_index<N(accountsha)>();
-      auto member_itr = members_account_index.find( to_key( cs ) );
+   auto client_account_idx = clients.get_index<N(accountsha)>();
+   auto client_itr = client_account_idx.find( to_key( cs ) );
 
-      if ( member_itr != members_account_index.end() ) {
-         members_account_index.modify( member_itr, 0, [&](auto& m ) {
-            m.id           = member_id;
-            m.company_name = company_name;
-            m.agreed_terms = agreed_terms;
-            });
+   if ( client_itr != client_account_idx.end() ) {
+      // Update exiting client
+      client_account_idx.modify( client_itr, 0, [&](auto& c ) {
+         c.id                       = client_id;
+         c.email                    = client_email;
+         c.company_name             = client_company_name;
+         c.company_location.country = client_country;
+         c.company_location.region  = client_region;
+         c.date_modified            = now();
+         c.agreed_terms             = agreed_terms;
+      });
 
-         print("member '", name{member_new}, "' updated\n");
-      } else {
-         client_members.emplace( _self /** we pay for RAM **/, [&]( auto& m ) {
-            m.id           = member_id;
-            m.account_sha  = cs;
-            m.account      = member_new;
-            m.company_name = company_name;
-            m.agreed_terms = agreed_terms;
-         });
-      }
+      print("member '", name{client_account}, "' updated\n");
+   } else {
+      // Create new client
+      clients.emplace( _self /** we pay for RAM **/, [&]( auto& c ) {
+         c.id                       = client_id;
+         c.account                  = client_account;
+         c.account_sha              = cs;
+         c.email                    = client_email;
+         c.company_name             = client_company_name;
+         c.company_location.country = client_country;
+         c.company_location.region  = client_region;
+         c.date_created             = now();
+         c.agreed_terms             = agreed_terms;
+      });
+
+      print("member '", name{client_account}, "' registered\n");
    }
-
-   // Register Vendor
-   if ( member_type == VENDOR ) {
-      vendor_table vendor_members( _self, _self );
-
-      auto members_account_index = vendor_members.get_index<N(accountsha)>();
-      auto member_itr = members_account_index.find( to_key( cs ) );
-
-      if ( member_itr != members_account_index.end() ) {
-         members_account_index.modify( member_itr, 0, [&](auto& m ) {
-            m.id           = member_id;
-            m.company_name = company_name;
-            m.agreed_terms = agreed_terms;
-            });
-
-         print("member '", name{member_new}, "' updated\n");
-      } else {
-         vendor_members.emplace( _self /** we pay for RAM **/, [&]( auto& m ) {
-            m.id           = member_id;
-            m.account_sha  = cs;
-            m.account      = member_new;
-            m.company_name = company_name;
-            m.agreed_terms = agreed_terms;
-         });
-      }
-   }
-
-
-   print("member '", name{member_new}, "' registered\n");
-
 }
 
 // @abi action
-void horusxportal::memberunreg( name member_leaving, uint32_t member_type ) {
-   require_auth( member_leaving );
-   require_recipient( member_leaving );
+void horusxportal::clientunreg( name client_leaving ) {
+   require_auth( client_leaving );
+   require_recipient( client_leaving );
 
    checksum256 cs{};
-   sha256( const_cast<char*>( member_leaving.to_string().c_str() ), sizeof(member_leaving), &cs );
-   printhex(&cs, sizeof(cs));
+   sha256( const_cast<char*>( client_leaving.to_string().c_str() ), sizeof(client_leaving), &cs );
 
-   // Remove Client
-   if ( member_type == CLIENT ) {
-      client_table client_members( _self, _self );
+   client_table clients( _self, _self );
 
-      auto members_account_index = client_members.get_index<N(accountsha)>();
-      auto member_itr = members_account_index.find( to_key( cs ) );
+   auto client_account_idx = clients.get_index<N(accountsha)>();
+   auto client_itr = client_account_idx.find( to_key( cs ) );
 
-      if ( member_itr == members_account_index.end() ) {
-         string err = "eos account '" + name{member_leaving}.to_string() + "' is not registered";
-         eosio_assert( false, err.c_str() );
-      }
+   eosio_assert( !(client_itr == client_account_idx.end()) , "client is not registered");
 
-      members_account_index.erase( member_itr );
-   }
+   client_account_idx.erase( client_itr );
 
-   // Remove Vendor
-   if ( member_type == VENDOR ) {
-      vendor_table vendor_members( _self, _self );
-
-      auto members_account_index = vendor_members.get_index<N(accountsha)>();
-      auto member_itr = members_account_index.find( to_key( cs ) );
-
-      if ( member_itr == members_account_index.end() ) {
-         string err = "eos account '" + name{member_leaving}.to_string() + "' is not registered";
-         eosio_assert( false, err.c_str() );
-      }
-
-      members_account_index.erase( member_itr );
-   }
-
-   print(name{member_leaving}, " successfully unregistered\n");
+   print(name{client_leaving}, " successfully unregistered\n");
 }
 
-} /// namespace horuspay
+} /// namespace horuspayportal
 
-EOSIO_ABI( horuspay::horusxportal, (memberreg)(memberunreg) )
+EOSIO_ABI( horuspayportal::horusxportal, (clientreg)(clientunreg) )
