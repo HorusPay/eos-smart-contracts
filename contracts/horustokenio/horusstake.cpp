@@ -139,7 +139,6 @@ namespace horuspaytoken {
          auto horus_balance = stake_horus_delta;
          bool need_deferred_trx = false;
 
-
          // resources are same sign by assertions in delegatebw and undelegatebw
          bool is_undelegating = (horus_balance.amount ) < 0;
          bool is_delegating_to_self = (!transfer && from == receiver);
@@ -233,7 +232,6 @@ namespace horuspaytoken {
       eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
 
       change_resource( from, receiver, stake_horus_quantity, transfer);
-      print("extra line of code.\n");
    }
 
 
