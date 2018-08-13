@@ -9,7 +9,7 @@
 
 namespace horuspaytoken {
 
-   static constexpr time refund_delay = 1; // 3*24*3600;
+   static constexpr time refund_delay = 60; // 3*24*3600;
    static constexpr time refund_expiration_time = 36;//3600;
 
    /***************************************************************************

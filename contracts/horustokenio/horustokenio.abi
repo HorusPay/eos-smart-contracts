@@ -70,7 +70,7 @@
      "fields": [
         {"name":"owner", "type":"account_name"},
         {"name":"request_time", "type":"time"},
-        {"name":"horus_amount", "type":"asset"},
+        {"name":"horus_amount", "type":"asset"}
      ]
   },{
      "name": "refundhorus",
