@@ -37,7 +37,8 @@
      "fields": [
         {"name":"from", "type":"account_name"},
         {"name":"to", "type":"account_name"},
-        {"name":"horus_weight", "type":"asset"}
+        {"name":"horus_weight", "type":"asset"},
+        {"name":"id", "type":"uint64"}
      ]
   },{
      "name": "user_resources",
@@ -62,7 +63,7 @@
      "fields": [
         {"name":"from", "type":"account_name"},
         {"name":"receiver", "type":"account_name"},
-        {"name":"unstake_horus_quantity", "type":"asset"}
+        {"name":"unstake_id", "type":"uint64"}
      ]
   },{
      "name": "refund_request",

@@ -42,7 +42,7 @@ public:
 
    void unstakehorus( account_name from,
                       account_name receiver,
-                      asset        unstake_horus_quantity );
+                      uint64_t     unstake_id );
 
    void refundhorus( const account_name owner );
 
