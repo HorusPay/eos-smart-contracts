@@ -37,17 +37,18 @@ namespace horuspaytoken {
 
    // @abi table stakehorus i64
    struct staked_horus {
+      uint64_t      id;
       account_name  from;
       account_name  to;
       asset         horus_weight;
-      uint64_t      id;
+      time          time_created;
 
-      uint64_t  primary_key()const { return to; }
-      uint64_t  get_id()const { return id; }
+      uint64_t  primary_key()const { return id; }
+      uint64_t  get_staker()const { return to; }
 
       // explicit serialization macro is not necessary,
       // used here only to improve compilation time
-      EOSLIB_SERIALIZE( staked_horus, (from)(to)(horus_weight)(id) )
+      EOSLIB_SERIALIZE( staked_horus, (id)(from)(to)(horus_weight)(time_created) )
    };
 
    // @abi table refunds i64
@@ -65,7 +66,7 @@ namespace horuspaytoken {
 
    typedef eosio::multi_index< N(userres), user_resources> user_resources_table;
    typedef multi_index< N(stakedhorus), staked_horus,
-               indexed_by< N(byid), const_mem_fun<staked_horus, uint64_t, &staked_horus::get_id >>
+               indexed_by< N(bystaker), const_mem_fun<staked_horus, account_name, &staked_horus::get_staker >>
                >      staked_horus_table;
    typedef multi_index< N(refunds), refund_request>        refunds_table;
 
@@ -80,21 +81,22 @@ namespace horuspaytoken {
                                              const asset&  stake_horus_delta ) {
       staked_horus_table staked_index( _self, from);
 
-      auto itr = staked_index.find( receiver );
-
+      /* CHANGE PRIMARY KEY TO ID */
       // emplace a new row for each stake
-      itr = staked_index.emplace( from /* staker owns RAM */, [&]( auto& dbo ){
+      staked_index.emplace( from /* staker owns RAM */, [&]( auto& dbo ){
             dbo.id            = staked_index.available_primary_key();
             dbo.from          = from;
             dbo.to            = receiver;
             dbo.horus_weight  = stake_horus_delta;
+            dbo.time_created  = now();
          });
 
-      eosio_assert( asset(0,HORUS_SYMBOL) <= itr->horus_weight, "insufficient staked HORUS" );
+      // eosio_assert( asset(0,HORUS_SYMBOL) <= itr->horus_weight, "insufficient staked HORUS" );
 
-      if ( itr->horus_weight == asset(0, HORUS_SYMBOL) ) {
-         staked_index.erase( itr );
-      }
+      /** NOT NEEDED ? **/
+      // if ( itr->horus_weight == asset(0, HORUS_SYMBOL) ) {
+      //    staked_index.erase( itr );
+      // }
    }
 
 
@@ -260,14 +262,13 @@ namespace horuspaytoken {
       //change_resource( from, receiver, -unstake_horus_quantity, false);
       staked_horus_table staked_index( _self, from );
 
-      auto stakes_by_id = staked_index.get_index<N(byid)>();
-      auto unstake_itr = stakes_by_id.find( unstake_id );
+      auto unstake_itr = staked_index.find( unstake_id );
 
-      eosio_assert( unstake_itr != stakes_by_id.end(), "staked row does not exist!");
+      eosio_assert( unstake_itr != staked_index.end(), "staked row does not exist!");
 
       create_or_update_refund( from, from, -(unstake_itr->horus_weight), true, source_stake_from );
 
-      stakes_by_id.erase( unstake_itr );
+      staked_index.erase( unstake_itr );
 
    }
 

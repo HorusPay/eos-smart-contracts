@@ -35,10 +35,11 @@
      "name": "staked_horus",
      "base": "",
      "fields": [
+        {"name":"id", "type":"uint64"},
         {"name":"from", "type":"account_name"},
         {"name":"to", "type":"account_name"},
         {"name":"horus_weight", "type":"asset"},
-        {"name":"id", "type":"uint64"}
+        {"name":"time_created", "type":"time"}
      ]
   },{
      "name": "user_resources",
