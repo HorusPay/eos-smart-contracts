@@ -12,6 +12,7 @@ Token Symbol: `ECASH`
 To view account balance
 
 `cleos get currency balance horustokenio account-name HORUS`
+
 `cleos get currency balance horustokenio account-name ECASH`
 
 To transfer tokens (example: 1.0000 HORUS)
