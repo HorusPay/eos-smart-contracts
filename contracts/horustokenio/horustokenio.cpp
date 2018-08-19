@@ -27,4 +27,4 @@ namespace horuspaytoken {
 
 } /// namespace horuspaytoken
 
-EOSIO_ABI( horuspaytoken::horustokenio,(create)(issue)(transfer)(stakehorus)(unstakehorus)(refundhorus)/*(rmtoken)*/ )
+EOSIO_ABI( horuspaytoken::horustokenio,(create)(issue)(transfer)(stakehorus)(unstakehorus)(refundhorus)(claimreward)/*(rmtoken)*/ )
