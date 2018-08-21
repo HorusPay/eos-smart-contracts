@@ -74,7 +74,7 @@ cleos get table horustokenio alice stakedhorus
 Unstake tokens back to the staker.  There is a 7 day delay to unstake.
 
 ```bash
-cleos push action horustokenio unstakehorus '["from","receiver","stake_id"]' -p from
+cleos push action horustokenio unstakehorus '["from","stake_id"]' -p from
 ```
 
 ### claimreward
