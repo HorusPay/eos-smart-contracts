@@ -202,7 +202,7 @@ namespace horuspaytoken {
       eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
 
       require_auth( from );
-      eosio_assert( stake_horus_quantity != asset(0, HORUS_SYMBOL), "should stake non-zero amount" );
+      eosio_assert( stake_horus_quantity >= asset(1000, HORUS_SYMBOL), "minimum stake required is '0.1000 HORUS'" );
 
       account_name source_stake_from = from;
 
