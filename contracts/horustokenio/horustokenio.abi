@@ -35,9 +35,11 @@
      "name": "staked_horus",
      "base": "",
      "fields": [
+        {"name":"id", "type":"uint64"},
         {"name":"from", "type":"account_name"},
         {"name":"to", "type":"account_name"},
-        {"name":"horus_weight", "type":"asset"}
+        {"name":"horus_weight", "type":"asset"},
+        {"name":"time_initial", "type":"time"}
      ]
   },{
      "name": "user_resources",
@@ -61,8 +63,7 @@
      "base": "",
      "fields": [
         {"name":"from", "type":"account_name"},
-        {"name":"receiver", "type":"account_name"},
-        {"name":"unstake_horus_quantity", "type":"asset"}
+        {"name":"unstake_id", "type":"uint64"}
      ]
   },{
      "name": "refund_request",
@@ -77,6 +78,13 @@
      "base": "",
      "fields": [
         {"name":"owner", "type":"account_name"}
+     ]
+  },{
+     "name": "claimreward",
+     "base": "",
+     "fields": [
+        {"name":"owner", "type":"account_name"},
+        {"name":"stake_id", "type":"uint64"}
      ]
   },{
      "name": "rmtoken",
@@ -123,6 +131,10 @@
     },{
       "name": "refundhorus",
       "type": "refundhorus",
+      "ricardian_contract": ""
+    },{
+      "name": "claimreward",
+      "type": "claimreward",
       "ricardian_contract": ""
     },{
       "name": "rmtoken",

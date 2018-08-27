@@ -8,6 +8,7 @@
 
 
 #define HORUS_SYMBOL S(4,HORUS)
+#define ECASH_SYMBOL S(4,ECASH)
 
 
 namespace horuspaytoken {
@@ -22,6 +23,7 @@ using eosio::bytes;
 using eosio::print;
 using eosio::permission_level;
 using std::string;
+using std::to_string;
 using std::map;
 using std::pair;
 
@@ -41,10 +43,11 @@ public:
                     bool         transfer );
 
    void unstakehorus( account_name from,
-                      account_name receiver,
-                      asset        unstake_horus_quantity );
+                      uint64_t     unstake_id );
 
    void refundhorus( const account_name owner );
+
+   void claimreward( account_name owner, uint64_t stake_id );
 
    /*void rmtoken( const string sym );*/
 
@@ -63,11 +66,6 @@ private:
                                         const asset&  stake_horus_delta,
                                         bool          transfer,
                                         account_name& source_stake_from );
-
-   void change_resource( account_name from,
-                         account_name receiver,
-                         const asset  stake_horus_delta,
-                         bool         transfer );
 
 };
 
