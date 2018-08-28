@@ -1,3 +1,8 @@
+/* Title: change to 'horustokenio_tests.cpp'
+*  Description: I am hijacking the eosio.token_tests.cpp file to run unit test for our
+*    horustokenio contract.
+*  Telegram: @jackdisalvatore
+*/
 #include <boost/test/unit_test.hpp>
 #include <eosio/testing/tester.hpp>
 #include <eosio/chain/abi_serializer.hpp>
@@ -49,6 +54,9 @@ public:
       return base_tester::push_action( std::move(act), uint64_t(signer));
    }
 
+   /*************************************************************************
+   *                            G E T T E R S
+   **************************************************************************/
 
    fc::variant get_stats( const string& symbolname )
    {
@@ -70,6 +78,12 @@ public:
    {
       vector<char> data = get_row_by_account( N(horustokenio), to, N(stakedhorus), id );
       return data.empty() ? fc::variant() : abi_ser.binary_to_variant( "staked_horus", data, abi_serializer_max_time );
+   }
+
+   fc::variant get_refund( account_name owner )
+   {
+      vector<char> data = get_row_by_account( N(horustokenio), owner, N(refunds), owner );
+      return data.empty() ? fc::variant() : abi_ser.binary_to_variant( "refund_request", data, abi_serializer_max_time );
    }
 
    /*************************************************************************
@@ -353,6 +367,7 @@ BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
       ("balance", "400.0000 HORUS")
    );
 
+   produce_blocks(1);
 
    // alice staking HORUS for bob
    stakehorus( N(alice), N(bob), asset::from_string("100.0000 HORUS"), false );
@@ -363,7 +378,7 @@ BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
       ("from", "alice")
       ("to", "bob")
       ("horus_weight", "100.0000 HORUS")
-      ("time_initial", "1577836805")
+      ("time_initial", "1577836806")
    );
 
    alice_balance = get_account(N(alice), "4,HORUS");
@@ -415,12 +430,41 @@ BOOST_FIXTURE_TEST_CASE( unstakehorus_tests, horustokenio_tester ) try {
       ("time_initial", "1577836805")
    );
 
+   produce_blocks(1);
+
+   //unstake the horus
+   unstakehorus( N(alice), 0 );
+
+   auto alice_refund = get_refund( N(alice) );
+   REQUIRE_MATCHING_OBJECT( alice_refund, mvo()
+      ("owner", "alice")
+      ("request_time", "1577836806")
+      ("horus_amount", "100.0000 HORUS")
+   );
+
+   // refund has not happened yet
    auto alice_balance = get_account(N(alice), "4,HORUS");
    REQUIRE_MATCHING_OBJECT( alice_balance, mvo()
       ("balance", "400.0000 HORUS")
    );
 
+   produce_blocks(10);
+
+   // alice refunded
+   alice_balance = get_account(N(alice), "4,HORUS");
+   REQUIRE_MATCHING_OBJECT( alice_balance, mvo()
+      ("balance", "500.0000 HORUS")
+   );
 
 } FC_LOG_AND_RETHROW()
+
+
+/*************************************************************************
+* Test staking HORUS tokens and claiming rewards
+**************************************************************************/
+BOOST_FIXTURE_TEST_CASE( claimreward_tests, horustokenio_tester ) try {
+   // TODO
+} FC_LOG_AND_RETHROW()
+
 
 BOOST_AUTO_TEST_SUITE_END()
