@@ -11,6 +11,46 @@
 
 namespace horuspaytoken {
 
+   void horustokenio::transfer( account_name from,
+                                account_name to,
+                                asset        quantity,
+                                string       memo ) {
+      eosio_assert( from != to, "cannot transfer to self" );
+      require_auth( from );
+      eosio_assert( is_account( to ), "to account does not exist");
+      auto sym = quantity.symbol.name();
+      stats statstable( _self, sym );
+      const auto& st = statstable.get( sym );
+
+      require_recipient( from );
+      require_recipient( to );
+
+      eosio_assert( quantity.is_valid(), "invalid quantity" );
+      eosio_assert( quantity.amount > 0, "must transfer positive quantity" );
+      eosio_assert( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
+      eosio_assert( memo.size() <= 256, "memo has more than 256 bytes" );
+
+      auto payer = has_auth( to ) ? to : from;
+
+      sub_balance( from, quantity );
+      add_balance( to, quantity, payer );
+
+      if ( quantity.symbol == HORUS_SYMBOL ) {
+         /* Check staked horus in user resources */
+         user_resources_table user_res( _self, from );
+         auto user_resource_itr = user_res.find( from );
+
+         if ( user_resource_itr != user_res.end() && user_resource_itr->total_staked_horus.amount ) {
+            accounts from_acnts( _self, from );
+
+            const auto& owner = from_acnts.get( quantity.symbol.name(), "no HORUS balance object found" );
+            eosio_assert(quantity.amount <= (owner.balance.amount - user_resource_itr->total_staked_horus.amount),
+                         "not enough liquid HORUS to transfer");
+         }
+      }
+
+   }
+
 // IMPLEMENT FUTURE ACTIONS HERE
 
    /* DELETE THIS: Only for testing */

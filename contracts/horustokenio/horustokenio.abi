@@ -32,6 +32,13 @@
         {"name":"memo", "type":"string"}
      ]
   },{
+     "name": "user_resources",
+     "base": "",
+     "fields": [
+        {"name":"owner", "type":"account_name"},
+        {"name":"total_staked_horus", "type":"asset"}
+      ]
+  },{
      "name": "staked_horus",
      "base": "",
      "fields": [
@@ -151,6 +158,12 @@
       "type": "staked_horus",
       "index_type": "i64",
       "key_names" : ["id"],
+      "key_types" : ["uint64"]
+    },{
+      "name": "userres",
+      "type": "user_resources",
+      "index_type": "i64",
+      "key_names" : ["owner"],
       "key_types" : ["uint64"]
     },{
       "name": "refunds",

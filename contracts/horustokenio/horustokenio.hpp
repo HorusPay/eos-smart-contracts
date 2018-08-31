@@ -8,11 +8,10 @@
 #include <vector>
 
 
+namespace horuspaytoken {
+
 #define HORUS_SYMBOL S(4,HORUS)
 #define ECASH_SYMBOL S(4,ECASH)
-
-
-namespace horuspaytoken {
 
 using eosio::asset;
 using eosio::symbol_type;
@@ -28,7 +27,6 @@ using std::to_string;
 using std::vector;
 
 static constexpr uint64_t code = N(horustokenio);
-static constexpr uint64_t stakingaccount = N(horustokenio);
 
 
 class horustokenio : public eosio::token {
@@ -36,6 +34,12 @@ class horustokenio : public eosio::token {
 public:
 
    explicit horustokenio( account_name self ) : eosio::token( self ) {}
+
+   /* Overload transfer function */
+   void transfer( account_name from,
+                  account_name to,
+                  asset        quantity,
+                  string       memo );
 
    void stakehorus( account_name from,
                     account_name receiver,
@@ -45,7 +49,7 @@ public:
    void unstakehorus( account_name from,
                       uint64_t     stake_id );
 
-   void refundhorus( const account_name owner );
+   void refundhorus( account_name owner );
 
    void claimreward( account_name owner, uint64_t stake_id );
 
@@ -57,16 +61,13 @@ private:
                                account_name& receiver,
                                const asset&  stake_horus_delta );
 
-   // NOT USED
-   // void inline update_user_resources( account_name& from,
-   //                                    account_name& receiver,
-   //                                    const asset& stake_horus_delta );
+   void inline update_user_resources( account_name& owner,
+                                      const asset&  stake_horus_delta );
 
    void inline create_or_update_refund( account_name& from,
-                                        account_name& receiver,
+                                        account_name  receiver,
                                         const asset&  stake_horus_delta,
-                                        bool          transfer,
-                                        account_name& source_stake_from );
+                                        bool          transfer );
 
 };
 
