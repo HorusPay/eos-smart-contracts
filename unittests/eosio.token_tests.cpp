@@ -362,8 +362,8 @@ BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
    issue( N(horustokenio), N(alice), asset::from_string("2000000.0000 HORUS"), "issuing to alice" );
 
    // minimum balace error
-   BOOST_REQUIRE_EQUAL( wasm_assert_msg( "minimum stake required is '0.1000 HORUS'" ),
-      stakehorus( N(alice), N(alice), asset::from_string("0.0999 HORUS"), false )
+   BOOST_REQUIRE_EQUAL( wasm_assert_msg( "minimum stake required is '10.0000 HORUS'" ),
+      stakehorus( N(alice), N(alice), asset::from_string("9.9999 HORUS"), false )
    );
 
    // attempt to stake more HORUS tokens then user has
@@ -377,7 +377,7 @@ BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
    );
 
    // alice stake 1 million HORUS tokens for herself
-   // while in Beta 1 million HORUS will mint ECASH at a 1% rate
+   // while in Beta 1 million HORUS will mint ECASH at a 0.0023% 7 day rate
    stakehorus( N(alice), N(alice), asset::from_string("1000000.0000 HORUS"), false );
    // alice staking HORUS for bob
    stakehorus( N(alice), N(bob), asset::from_string("100.0000 HORUS"), false );
@@ -523,7 +523,7 @@ BOOST_FIXTURE_TEST_CASE( claimreward_from_tests, horustokenio_tester ) try {
 
    auto alice_ECASH_balance = get_account(N(alice), "4,ECASH");
    REQUIRE_MATCHING_OBJECT( alice_ECASH_balance, mvo()
-      ("balance", "10001.3340 ECASH")
+      ("balance", "2333.3111 ECASH")
    );
 
    produce_blocks(6);
@@ -535,7 +535,7 @@ BOOST_FIXTURE_TEST_CASE( claimreward_from_tests, horustokenio_tester ) try {
 
    alice_ECASH_balance = get_account(N(alice), "4,ECASH");
    REQUIRE_MATCHING_OBJECT( alice_ECASH_balance, mvo()
-      ("balance", "20001.3340 ECASH")
+      ("balance", "4666.3111 ECASH")
    );
 
    // Make sure that Alice retains ownership of her tokens even when they are staked
@@ -593,7 +593,7 @@ BOOST_FIXTURE_TEST_CASE( claimreward_receiver_tests, horustokenio_tester ) try {
 
    auto bob_ECASH_balance = get_account(N(bob), "4,ECASH");
    REQUIRE_MATCHING_OBJECT( bob_ECASH_balance, mvo()
-      ("balance", "10001.3340 ECASH")
+      ("balance", "2333.3111 ECASH")
    );
 
    produce_blocks(6);
@@ -605,7 +605,7 @@ BOOST_FIXTURE_TEST_CASE( claimreward_receiver_tests, horustokenio_tester ) try {
 
    bob_ECASH_balance = get_account(N(bob), "4,ECASH");
    REQUIRE_MATCHING_OBJECT( bob_ECASH_balance, mvo()
-      ("balance", "20001.3340 ECASH")
+      ("balance", "4666.3111 ECASH")
    );
 
    // Make sure that Alice retains ownership of her tokens even when they are staked
