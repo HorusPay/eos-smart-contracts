@@ -28,6 +28,7 @@ using std::to_string;
 using std::vector;
 
 static constexpr uint64_t code = N(horustokenio);
+static constexpr uint64_t stakingaccount = N(horustokenio);
 
 
 class horustokenio : public eosio::token {

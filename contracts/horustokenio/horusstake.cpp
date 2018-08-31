@@ -83,8 +83,8 @@ namespace horuspaytoken {
                                                       const asset&  stake_horus_delta,
                                                       bool          transfer,
                                                       account_name& source_stake_from )  {
-      //for code both transfer and refund make no sense
-      if ( code != source_stake_from ) {
+      //for 'stakingaccount' both transfer and refund make no sense
+      if ( stakingaccount != source_stake_from ) {
          refunds_table refunds_tbl( _self, from );
          auto req = refunds_tbl.find( from );
 
@@ -175,7 +175,7 @@ namespace horuspaytoken {
       auto transfer_amount = stake_horus_quantity;
       if ( asset(0, HORUS_SYMBOL) < transfer_amount ) {
          INLINE_ACTION_SENDER(horustokenio, transfer)( code, {source_stake_from, N(active)},
-            { source_stake_from, code, asset(transfer_amount), string("staking HORUS") } );
+            { source_stake_from, stakingaccount, asset(transfer_amount), string("staking HORUS") } );
       }
    }
 
@@ -235,8 +235,8 @@ namespace horuspaytoken {
          s.time_initial = now() - rollover_delta;
       });
 
-      // Sign issue action with both 'horustokenio' and 'owner'
-      vector<permission_level> permissions{ {code,  N(active)} , {owner, N(active)} };
+      // Sign issue action with both 'stakingaccount' and 'owner'
+      vector<permission_level> permissions{ {stakingaccount,  N(active)} , {owner, N(active)} };
 
       INLINE_ACTION_SENDER(horustokenio, issue)( code, permissions,
                            { stake_itr->to, reward, string("Rewarding ECASH") } );
@@ -254,8 +254,8 @@ namespace horuspaytoken {
       // allow people to get their tokens earlier than the 3 day delay if the unstake happened immediately after many
       // consecutive missed blocks.
 
-      INLINE_ACTION_SENDER(horustokenio, transfer)( code, {code,N(active)},
-                           { code, req->owner, req->horus_amount, string("unstake HORUS") } );
+      INLINE_ACTION_SENDER(horustokenio, transfer)( code, {stakingaccount,N(active)},
+                           { stakingaccount, req->owner, req->horus_amount, string("unstake HORUS") } );
 
       refunds_tbl.erase( req );
    }
