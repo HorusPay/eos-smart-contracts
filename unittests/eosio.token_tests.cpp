@@ -132,10 +132,17 @@ public:
    }
 
    action_result unstakehorus( account_name from,
-                               uint64_t     unstake_id ) {
+                               uint64_t     stake_id ) {
       return push_action( from, N(unstakehorus), mvo()
            ( "from", from)
-           ( "unstake_id", unstake_id)
+           ( "stake_id", stake_id)
+      );
+   }
+
+   action_result claimreward( account_name owner, uint64_t stake_id ) {
+      return push_action( owner, N(claimreward), mvo()
+            ( "owner", owner)
+            ( "stake_id", stake_id)
       );
    }
 
@@ -151,7 +158,7 @@ BOOST_AUTO_TEST_SUITE(eosio_token_tests)
 
 
 /*************************************************************************
-* Test creatng a new token called TKN
+* 1) Test creatng a new token called TKN
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( create_tests, horustokenio_tester ) try {
 
@@ -168,7 +175,7 @@ BOOST_FIXTURE_TEST_CASE( create_tests, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test creating a token with a negative supply
+* 2) Test creating a token with a negative supply
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( create_negative_max_supply, horustokenio_tester ) try {
 
@@ -180,7 +187,7 @@ BOOST_FIXTURE_TEST_CASE( create_negative_max_supply, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test you cannot create two tokens with the same symbol
+* 3) Test you cannot create two tokens with the same symbol
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( symbol_already_exists, horustokenio_tester ) try {
 
@@ -201,7 +208,7 @@ BOOST_FIXTURE_TEST_CASE( symbol_already_exists, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test max supply of token
+* 4) Test max supply of token
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( create_max_supply, horustokenio_tester ) try {
 
@@ -228,7 +235,7 @@ BOOST_FIXTURE_TEST_CASE( create_max_supply, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test creating token with max decimal places
+* 5) Test creating token with max decimal places
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( create_max_decimals, horustokenio_tester ) try {
 
@@ -256,7 +263,7 @@ BOOST_FIXTURE_TEST_CASE( create_max_decimals, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test issuing token
+* 6) Test issuing token
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( issue_tests, horustokenio_tester ) try {
 
@@ -293,7 +300,7 @@ BOOST_FIXTURE_TEST_CASE( issue_tests, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test transfering token
+* 7) Test transfering token
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( transfer_tests, horustokenio_tester ) try {
 
@@ -338,7 +345,7 @@ BOOST_FIXTURE_TEST_CASE( transfer_tests, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test staking HORUS tokens
+* 8) Test staking HORUS tokens
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
 
@@ -406,7 +413,7 @@ BOOST_FIXTURE_TEST_CASE( stakehorus_tests, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test unstaking HORUS tokens
+* 9) Test unstaking HORUS tokens & refunds
 **************************************************************************/
 BOOST_FIXTURE_TEST_CASE( unstakehorus_tests, horustokenio_tester ) try {
 
@@ -431,6 +438,11 @@ BOOST_FIXTURE_TEST_CASE( unstakehorus_tests, horustokenio_tester ) try {
    );
 
    produce_blocks(1);
+
+   // unstake id does not exist
+   BOOST_REQUIRE_EQUAL( wasm_assert_msg( "staked row does not exist" ),
+      unstakehorus( N(alice), 1 )
+   );
 
    //unstake the horus
    unstakehorus( N(alice), 0 );
@@ -460,10 +472,73 @@ BOOST_FIXTURE_TEST_CASE( unstakehorus_tests, horustokenio_tester ) try {
 
 
 /*************************************************************************
-* Test staking HORUS tokens and claiming rewards
+* 11) Test staking HORUS tokens and claiming rewards
 **************************************************************************/
-BOOST_FIXTURE_TEST_CASE( claimreward_tests, horustokenio_tester ) try {
+BOOST_FIXTURE_TEST_CASE( claimreward_from_tests, horustokenio_tester ) try {
+
    // TODO
+
+} FC_LOG_AND_RETHROW()
+
+
+/*************************************************************************
+* 10) Test staking HORUS tokens and claiming rewards for someone else
+**************************************************************************/
+BOOST_FIXTURE_TEST_CASE( claimreward_receiver_tests, horustokenio_tester ) try {
+
+   auto horus_token = create( N(horustokenio), asset::from_string("1200000000.0000 HORUS") );
+   auto ecash_token = create( N(horustokenio), asset::from_string("1200000000.0000 ECASH") );
+   produce_blocks(1);
+
+   issue( N(horustokenio), N(horustokenio), asset::from_string("2000000.0000 HORUS"), "issuing HORUS");
+
+   // Give tokens to alice
+   transfer( N(horustokenio), N(alice), asset::from_string("2000000.0000 HORUS"), "transfer to alice" );
+
+   // alice stakes HORUS tokens for bob
+   stakehorus( N(alice), N(bob), asset::from_string("100.0000 HORUS"), false );
+   // alice stakes 1 million HORUS tokens for bob
+   stakehorus( N(alice), N(bob), asset::from_string("1000000.0000 HORUS"), false);
+
+   auto alice_stake_0 = get_horus_stake( N(alice), 0 );
+   REQUIRE_MATCHING_OBJECT( alice_stake_0, mvo()
+      ("id", "0")
+      ("from", "alice")
+      ("to", "bob")
+      ("horus_weight", "100.0000 HORUS")
+      ("time_initial", "1577836805")
+   );
+
+   auto alice_stake_1 = get_horus_stake( N(alice), 1 );
+   REQUIRE_MATCHING_OBJECT( alice_stake_1, mvo()
+      ("id", "1")
+      ("from", "alice")
+      ("to", "bob")
+      ("horus_weight", "1000000.0000 HORUS")
+      ("time_initial", "1577836806")
+   );
+
+   BOOST_REQUIRE_EQUAL( wasm_assert_msg( "stake id does not exist" ),
+      claimreward( N(alice), 2 )
+   );
+
+   BOOST_REQUIRE_EQUAL( wasm_assert_msg( "cannot claim reward yet, you still have 4 seconds remaining" ),
+      claimreward( N(alice), 0 )
+   );
+
+   // claim reward
+   produce_blocks(10);
+
+   // reward issued
+   // TODO: fix the "nothing to be rewarded" error
+
+   // claimreward( N(alice), 0 );
+   // produce_blocks(20);
+   // auto alice_ECASH_balance = get_account(N(alice), "4,ECASH");
+   // REQUIRE_MATCHING_OBJECT( alice_ECASH_balance, mvo()
+   //    ("balance", "0.1000 ECASH")
+   // );
+
 } FC_LOG_AND_RETHROW()
 
 
