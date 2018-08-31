@@ -5,6 +5,7 @@
 */
 #include <eosio.token/eosio.token.hpp>
 #include <string>
+#include <vector>
 
 
 #define HORUS_SYMBOL S(4,HORUS)
@@ -24,11 +25,9 @@ using eosio::print;
 using eosio::permission_level;
 using std::string;
 using std::to_string;
-using std::map;
-using std::pair;
+using std::vector;
 
 static constexpr uint64_t code = N(horustokenio);
-static constexpr uint64_t stakingaccount = N(horustokenio);
 
 
 class horustokenio : public eosio::token {
@@ -43,7 +42,7 @@ public:
                     bool         transfer );
 
    void unstakehorus( account_name from,
-                      uint64_t     unstake_id );
+                      uint64_t     stake_id );
 
    void refundhorus( const account_name owner );
 
@@ -57,9 +56,10 @@ private:
                                account_name& receiver,
                                const asset&  stake_horus_delta );
 
-   void inline update_user_resources( account_name& from,
-                                      account_name& receiver,
-                                      const asset& stake_horus_delta );
+   // NOT USED
+   // void inline update_user_resources( account_name& from,
+   //                                    account_name& receiver,
+   //                                    const asset& stake_horus_delta );
 
    void inline create_or_update_refund( account_name& from,
                                         account_name& receiver,

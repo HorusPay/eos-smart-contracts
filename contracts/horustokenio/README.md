@@ -2,6 +2,7 @@
 
 Mainnet account running this contract: `horustokenio`
 Token Symbol: `HORUS`
+Token Symbol: `ECASH`
 
 Jungle Testnet account running this contract: `horustokenio`
 Token Symbol: `HORUS`

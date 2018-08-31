@@ -9,31 +9,14 @@
 
 namespace horuspaytoken {
 
-   static constexpr time refund_delay = 7*24*3600;   // 7 days
-   const uint64_t REQUIRED_STAKE_DURATION = 5*24*3600; // 5 days
+   static constexpr time refund_delay     = 180; // 3mins FOR TEST // 7*24*3600;   // 7 days
+   const uint64_t REQUIRED_STAKE_DURATION = 180; // 3mins FOR TEST // 5*24*3600;   // 5 days
 
    /***************************************************************************
     *                               T A B L E S
-    *
-    * Every user 'from' has a scope/table that uses every receipient 'to'
-    * as the primary key.
-    *
     *  These tables are designed to be constructed in the scope of the relevant
     *  user, this facilitates simpler API for per-user queries
     **************************************************************************/
-
-   // @abi table userres i64
-   struct user_resources {
-      account_name  owner;
-      asset         horus_weight;
-      int64_t       memory_bytes = 0;
-
-      uint64_t primary_key()const { return owner; }
-
-      // explicit serialization macro is not necessary,
-      // used here only to improve compilation time
-      EOSLIB_SERIALIZE( user_resources, (owner)(horus_weight)(memory_bytes) )
-   };
 
    // @abi table stakehorus i64
    struct staked_horus {
@@ -64,11 +47,12 @@ namespace horuspaytoken {
       EOSLIB_SERIALIZE( refund_request, (owner)(request_time)(horus_amount) )
    };
 
-   typedef multi_index< N(userres), user_resources> user_resources_table;
-   typedef multi_index< N(refunds), refund_request>        refunds_table;
    typedef multi_index< N(stakedhorus), staked_horus,
-            indexed_by< N(bystaker), const_mem_fun<staked_horus, account_name, &staked_horus::get_staker >>
-            >      staked_horus_table;
+            indexed_by< N(bystaker),
+               const_mem_fun< staked_horus, account_name, &staked_horus::get_staker >
+            >
+   >                                                        staked_horus_table;
+   typedef multi_index< N(refunds), refund_request>              refunds_table;
 
 
    /****************************************************************************
@@ -90,34 +74,8 @@ namespace horuspaytoken {
             dbo.time_initial  = now();
          });
 
-      eosio_assert( asset(0,HORUS_SYMBOL) <= itr->horus_weight, "insufficient staked HORUS" );
-
+      eosio_assert( stake_horus_delta == itr->horus_weight, "staked HORUS failed" );
    }
-
-
-   void inline horustokenio::update_user_resources( account_name& from,
-                                                    account_name& receiver,
-                                                    const asset&  stake_horus_delta ) {
-      user_resources_table totals_tbl( _self, receiver );
-
-      auto tot_itr = totals_tbl.find( receiver );
-
-      if( tot_itr ==  totals_tbl.end() ) {
-         tot_itr = totals_tbl.emplace( from, [&]( auto& tot ) {
-               tot.owner         = receiver;
-               tot.horus_weight    = stake_horus_delta;
-            });
-      } else {
-         totals_tbl.modify( tot_itr, from == receiver ? from : 0, [&]( auto& tot ) {
-               tot.horus_weight    += stake_horus_delta;
-            });
-      }
-      eosio_assert( asset(0, HORUS_SYMBOL) <= tot_itr->horus_weight, "insufficient staked total HORUS" );
-
-      if ( tot_itr->horus_weight == asset(0, HORUS_SYMBOL) && tot_itr->memory_bytes == 0 ) {
-         totals_tbl.erase( tot_itr );
-      }
-   };
 
 
    void inline horustokenio::create_or_update_refund( account_name& from,
@@ -125,8 +83,8 @@ namespace horuspaytoken {
                                                       const asset&  stake_horus_delta,
                                                       bool          transfer,
                                                       account_name& source_stake_from )  {
-      //for stakingaccount both transfer and refund make no sense
-      if ( horuspaytoken::stakingaccount != source_stake_from ) {
+      //for code both transfer and refund make no sense
+      if ( code != source_stake_from ) {
          refunds_table refunds_tbl( _self, from );
          auto req = refunds_tbl.find( from );
 
@@ -197,11 +155,12 @@ namespace horuspaytoken {
 
 
    void horustokenio::stakehorus( account_name from, account_name receiver, asset stake_horus_quantity, bool transfer ) {
-      eosio_assert( stake_horus_quantity >= asset(0, HORUS_SYMBOL), "must stake a positive amount" );
-      eosio_assert( stake_horus_quantity > asset(0, HORUS_SYMBOL), "must stake a positive amount" );
-      eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
-
       require_auth( from );
+
+      eosio_assert( is_account( receiver ), "account does not exist");
+      eosio_assert( stake_horus_quantity.is_valid(), "invalid offeror_asset");
+      eosio_assert( stake_horus_quantity >= asset(0, HORUS_SYMBOL), "must stake a positive amount" );
+      eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
       eosio_assert( stake_horus_quantity >= asset(1000, HORUS_SYMBOL), "minimum stake required is '0.1000 HORUS'" );
 
       account_name source_stake_from = from;
@@ -211,41 +170,36 @@ namespace horuspaytoken {
       }
 
       delegate_horus( from, receiver, stake_horus_quantity );
-      //update_user_resources( from, receiver, stake_horus_delta );
       create_or_update_refund( from, receiver, stake_horus_quantity, transfer, source_stake_from );
 
       auto transfer_amount = stake_horus_quantity;
       if ( asset(0, HORUS_SYMBOL) < transfer_amount ) {
          INLINE_ACTION_SENDER(horustokenio, transfer)( code, {source_stake_from, N(active)},
-            { source_stake_from, stakingaccount,
-                                 asset(transfer_amount), string("staking HORUS") } );
+            { source_stake_from, code, asset(transfer_amount), string("staking HORUS") } );
       }
    }
 
 
-   void horustokenio::unstakehorus( account_name from, uint64_t unstake_id ) {
+   void horustokenio::unstakehorus( account_name from, uint64_t stake_id ) {
       require_auth( from );
-
-      account_name source_stake_from = from;
 
       staked_horus_table staked_index( _self, from );
 
-      auto unstake_itr = staked_index.find( unstake_id );
+      auto unstake_itr = staked_index.find( stake_id );
 
-      eosio_assert( unstake_itr != staked_index.end(), "staked row does not exist!");
+      eosio_assert( unstake_itr != staked_index.end(), "staked row does not exist");
 
-      create_or_update_refund( from, from, -(unstake_itr->horus_weight), true, source_stake_from );
+      create_or_update_refund( from, from, -(unstake_itr->horus_weight), true, from );
 
       staked_index.erase( unstake_itr );
-
    }
 
 
    void horustokenio::claimreward( account_name owner, uint64_t stake_id ) {
       require_auth( owner );
-      asset reward;
-      uint64_t reward_amount = 0 ;
-      time rollover_delta = 0;
+      asset    reward;
+      int64_t  reward_amount  = 0;
+      time     rollover_delta = 0;
 
       staked_horus_table staked_index( _self, owner );
       auto stake_itr = staked_index.find( stake_id );
@@ -260,28 +214,31 @@ namespace horuspaytoken {
       }
 
       // '10000' is '1.0000 HORUS'         1 Million
-      if ( stake_itr->horus_weight > asset(10000000000, HORUS_SYMBOL) )
+      if ( stake_itr->horus_weight >= asset(10000000000, HORUS_SYMBOL) )
       {
-         reward_amount = (stake_itr->horus_weight.amount / 100) * 1 ; // 1%
+         reward_amount = int64_t( stake_itr->horus_weight.amount / 100 ); // 1%
       }
       else if ( stake_itr->horus_weight < asset(1000000, HORUS_SYMBOL) )
       {
-         reward_amount = (stake_itr->horus_weight.amount / 1000) * 1 ; // 0.1%
+         reward_amount = int64_t( stake_itr->horus_weight.amount / 1000 ); // 0.1%
       }
 
       reward = asset(reward_amount, ECASH_SYMBOL);
-      eosio_assert( asset(0, ECASH_SYMBOL) < reward , "nothing to be rewarded");
       print("You will get ", reward, "\n");
+      eosio_assert( asset(0, ECASH_SYMBOL) < reward , "nothing to be rewarded");
 
       /* Update the staking table time */
       rollover_delta = now() - (stake_itr->time_initial + REQUIRED_STAKE_DURATION);
-      print("Roller is ", rollover_delta, " seconds\n");
+      print("Rollover is ", rollover_delta, " seconds\n");
       staked_index.modify( stake_itr, 0, [&](auto& s) {
          // Subtract on the rollover time that was not accounted for
          s.time_initial = now() - rollover_delta;
       });
 
-      INLINE_ACTION_SENDER(horustokenio, issue)( code, {stakingaccount,N(active)},
+      // Sign issue action with both 'horustokenio' and 'owner'
+      vector<permission_level> permissions{ {code,  N(active)} , {owner, N(active)} };
+
+      INLINE_ACTION_SENDER(horustokenio, issue)( code, permissions,
                            { stake_itr->to, reward, string("Rewarding ECASH") } );
    }
 
@@ -297,8 +254,8 @@ namespace horuspaytoken {
       // allow people to get their tokens earlier than the 3 day delay if the unstake happened immediately after many
       // consecutive missed blocks.
 
-      INLINE_ACTION_SENDER(horustokenio, transfer)( code, {stakingaccount,N(active)},
-                           { stakingaccount, req->owner, req->horus_amount, string("unstake HORUS") } );
+      INLINE_ACTION_SENDER(horustokenio, transfer)( code, {code,N(active)},
+                           { code, req->owner, req->horus_amount, string("unstake HORUS") } );
 
       refunds_tbl.erase( req );
    }

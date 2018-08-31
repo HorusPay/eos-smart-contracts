@@ -42,14 +42,6 @@
         {"name":"time_initial", "type":"time"}
      ]
   },{
-     "name": "user_resources",
-     "base": "",
-     "fields": [
-        {"name":"owner", "type":"account_name"},
-        {"name":"horus_weight", "type":"asset"},
-        {"name":"memory_bytes", "type":"uint64"}
-      ]
-  },{
      "name": "stakehorus",
      "base": "",
      "fields": [
@@ -63,7 +55,7 @@
      "base": "",
      "fields": [
         {"name":"from", "type":"account_name"},
-        {"name":"unstake_id", "type":"uint64"}
+        {"name":"stake_id", "type":"uint64"}
      ]
   },{
      "name": "refund_request",
@@ -158,13 +150,7 @@
       "name": "stakedhorus",
       "type": "staked_horus",
       "index_type": "i64",
-      "key_names" : ["to"],
-      "key_types" : ["uint64"]
-    },{
-      "name": "userres",
-      "type": "user_resources",
-      "index_type": "i64",
-      "key_names" : ["owner"],
+      "key_names" : ["id"],
       "key_types" : ["uint64"]
     },{
       "name": "refunds",
