@@ -9,8 +9,8 @@
 
 namespace horuspaytoken {
 
-   static constexpr time refund_delay     = 10; // 1mins FOR TEST // 7*24*3600;   // 7 days
-   const uint64_t REQUIRED_STAKE_DURATION = 10; // 1mins FOR TEST // 5*24*3600;   // 5 days
+   static constexpr time refund_delay     = 7*24*3600;   // 7 days
+   const uint64_t REQUIRED_STAKE_DURATION = 7*24*3600;   // 7 days
 
    /***************************************************************************
     *                               T A B L E S
@@ -192,7 +192,7 @@ namespace horuspaytoken {
       eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
       eosio_assert( stake_horus_quantity.is_valid(), "invalid offeror_asset");
       eosio_assert( stake_horus_quantity >= asset(0, HORUS_SYMBOL), "must stake a positive amount" );
-      eosio_assert( stake_horus_quantity >= asset(1000, HORUS_SYMBOL), "minimum stake required is '0.1000 HORUS'" );
+      eosio_assert( stake_horus_quantity >= asset(100000, HORUS_SYMBOL), "minimum stake required is '10.0000 HORUS'" );
 
       user_resources_table user_res( _self, from );
       accounts        from_accounts( _self, from );
@@ -233,6 +233,11 @@ namespace horuspaytoken {
    }
 
 
+   /***********************************************************************************
+   *   0.01% per month => ( 0.001 / 30 ) * 7 = 0.00023 = 0.023% per 7 days
+   *   Minumum stake:
+   *      10.0000 HORUS * 0.00023 = 0.0023 ECASH
+   ***********************************************************************************/
    void horustokenio::claimreward( account_name owner, uint64_t stake_id ) {
       require_auth( owner );
 
@@ -246,7 +251,7 @@ namespace horuspaytoken {
       eosio_assert( stake_itr != staked_index.end() , "stake id does not exist" );
       eosio_assert( stake_itr->id == stake_id ,  "failed to retrieved stake id" );
 
-      if ( now() <= (stake_itr->time_initial + REQUIRED_STAKE_DURATION) ) {
+      if ( now() < (stake_itr->time_initial + REQUIRED_STAKE_DURATION) ) {
          string err = "cannot claim reward yet, you still have "
                       + to_string( (stake_itr->time_initial + REQUIRED_STAKE_DURATION) - now() )
                       + " seconds remaining";
@@ -256,11 +261,13 @@ namespace horuspaytoken {
       // '10000' is '1.0000 HORUS'         1 Million
       if ( stake_itr->horus_weight >= asset(10000000000, HORUS_SYMBOL) )
       {
-         reward_amount = int64_t( stake_itr->horus_weight.amount / 100 ); // 1%
+          // 1% payouts a month or 0.0023% per week
+         reward_amount = int64_t( (stake_itr->horus_weight.amount * 2333) / 1000000 );
       }
       else
       {
-         reward_amount = int64_t( stake_itr->horus_weight.amount / 1000 ); // 0.1%
+          // 0.1% payouts a month or 0.00023% per week
+         reward_amount = int64_t( (stake_itr->horus_weight.amount * 2333) / 10000000 );
       }
 
       reward = asset(reward_amount, ECASH_SYMBOL);
@@ -290,7 +297,7 @@ namespace horuspaytoken {
       refunds_table refunds_tbl( _self, owner );
       auto req = refunds_tbl.find( owner );
       eosio_assert( req != refunds_tbl.end(), "refund request not found" );
-      if ( now() <= req->request_time + refund_delay ) {
+      if ( now() < req->request_time + refund_delay ) {
          string err = "refund is not available yet " + to_string( (req->request_time + refund_delay) - now() )
                      + " seconds remaining";
          eosio_assert( false, err.c_str() );
