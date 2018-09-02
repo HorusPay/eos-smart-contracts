@@ -43,7 +43,7 @@ Standard currency transfer action.  Transfer tokens between two accounts.
 
 ### stakehorus
 
-This action lets a HORUS token holder stake their tokens for themselves in order to get access to claim staking rewards.
+This action lets a HORUS token holder stake their tokens for themselves (or another account) in order to get access to claim staking rewards.
 A minimum of 10.0000 HORUS must be staked to participate in staking rewards. Rewards are earned by staking HORUS tokens for
 longer than 7 days. After 7 days payouts can be claimed in the form of ECASH. ECASH is rewarded proportionally to the amount of
 HORUS staked and will be issued at a 1% monthly rate of the staked HORUS for a stake greater than or equal to 1 million HORUS,
