@@ -32,9 +32,6 @@ namespace horuspaytoken {
 
       auto payer = has_auth( to ) ? to : from;
 
-      sub_balance( from, quantity );
-      add_balance( to, quantity, payer );
-
       if ( quantity.symbol == HORUS_SYMBOL ) {
          /* Check staked horus in user resources */
          user_resources_table user_res( _self, from );
@@ -44,11 +41,13 @@ namespace horuspaytoken {
             accounts from_acnts( _self, from );
 
             const auto& owner = from_acnts.get( quantity.symbol.name(), "no HORUS balance object found" );
-            eosio_assert(quantity.amount <= (owner.balance.amount - user_resource_itr->total_staked_horus.amount),
+            eosio_assert(quantity <= (owner.balance - user_resource_itr->total_staked_horus),
                          "not enough liquid HORUS to transfer");
          }
       }
 
+      sub_balance( from, quantity );
+      add_balance( to, quantity, payer );
    }
 
 // IMPLEMENT FUTURE ACTIONS HERE
