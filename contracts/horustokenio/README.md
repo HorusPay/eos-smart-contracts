@@ -43,11 +43,14 @@ Standard currency transfer action.  Transfer tokens between two accounts.
 
 ### stakehorus
 
-Stake your HORUS tokens for yourself or another account.  Staking works by sending HORUS tokens to the `horustokenio` contract account via
-the `stakehorus` action.  Each time tokens are staked a new `stakedhorus` row is created.  Each row is indexed by a `stake_id`.
-Each stake row is timestamped inorder to determine if rewards can be claimed.  When rewards are ready to be claimed, the `claimreward`
-action can be called with the `stake_id`.  If the stake exceeds 1000000.0000 HORUS a payout rate of 1% is issued every 5 days,
-otherwise a payout rate of 0.1% is issued every 5 days.  Payouts are issued in ECASH.
+This action lets a HORUS token holder stake their tokens for themselves in order to get access to claim staking rewards.
+A minimum of 10.0000 HORUS must be staked to participate in staking rewards. Rewards are earned by staking HORUS tokens for
+longer than 7 days. After 7 days payouts can be claimed in the form of ECASH. ECASH is rewarded proportionally to the amount of
+HORUS staked and will be issued at a 1% monthly rate of the staked HORUS for a stake greater than or equal to 1 million HORUS,
+and at a 0.1% monthly rate for any stake less than 1 million. In the future when the HorusPay Payroll Portal is fully released,
+the 1 million HORUS token threshold will be removed and all stakes will mint ECASH at a 0.1% monthly rate. After the 7 day vesting
+period the staking durration will automatically be renewed for the owner {{ from }} to continue claiming rewards. This action may
+change at a later point in time.
 
 ```bash
 cleos push action horustokenio stakehorus '["from","receiver","1.0000 HORUS"]' -p from
@@ -91,6 +94,15 @@ Called when unstaking to refund the staked tokens over a period of time.
 ```bash
 cleos get table horustokenio owner refunds
 ```
+
+---
+## Future Updates
+
+### add stake
+Add HORUS tokens to an existing stake
+
+### claimreward - claim all
+Claim all available rewards at once.
 
 ---
 To build in-source with eos, place the `eosio.token` and `horustokenio` directories into `/eos/contracts` and run `make`
