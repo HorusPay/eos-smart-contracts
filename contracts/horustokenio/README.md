@@ -99,7 +99,7 @@ cleos get table horustokenio owner refunds
 ## Future Updates
 
 ### add stake
-Add HORUS tokens to an existing stake
+Add HORUS tokens to an existing stake.  This will restart the initial stake time.
 
 ### claimreward - claim all
 Claim all available rewards at once.
