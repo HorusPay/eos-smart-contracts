@@ -112,8 +112,7 @@ namespace horuspaytoken {
 
    void inline horustokenio::create_or_update_refund( account_name& from,
                                                       account_name  receiver,
-                                                      const asset&  stake_horus_delta,
-                                                      bool          transfer ) {
+                                                      const asset&  stake_horus_delta ) {
       refunds_table refunds_tbl( _self, from );
       auto req = refunds_tbl.find( from );
 
@@ -123,7 +122,7 @@ namespace horuspaytoken {
 
       // resources are same sign by assertions in delegatebw and undelegatebw
       bool is_undelegating = (horus_balance.amount ) < 0;
-      bool is_delegating_to_self = (!transfer && from == receiver);
+      bool is_delegating_to_self = ( from == receiver);
 
       if( is_delegating_to_self || is_undelegating ) {
          if ( req != refunds_tbl.end() ) { //need to update refund
@@ -184,12 +183,11 @@ namespace horuspaytoken {
     ***************************************************************************/
 
 
-   void horustokenio::stakehorus( account_name from, account_name receiver, asset stake_horus_quantity, bool transfer ) {
+   void horustokenio::stakehorus( account_name from, account_name receiver, asset stake_horus_quantity) {
       require_auth( from );
       asset current_staked_horus;
 
       eosio_assert( is_account( receiver ), "account does not exist");
-      eosio_assert( !transfer || from != receiver, "cannot use transfer flag if staking to self" );
       eosio_assert( stake_horus_quantity.is_valid(), "invalid offeror_asset");
       eosio_assert( stake_horus_quantity >= asset(0, HORUS_SYMBOL), "must stake a positive amount" );
       eosio_assert( stake_horus_quantity >= asset(100000, HORUS_SYMBOL), "minimum stake required is '10.0000 HORUS'" );
@@ -208,13 +206,9 @@ namespace horuspaytoken {
       eosio_assert( stake_horus_quantity <= (from_horus_account->balance - current_staked_horus ),
                     "not enough liquid HORUS to stake" );
 
-      if ( transfer ) {
-         from = receiver;
-      }
-
       delegate_horus( from, receiver, stake_horus_quantity );
       update_user_resources( from, stake_horus_quantity );
-      create_or_update_refund( from, receiver, stake_horus_quantity, transfer );
+      create_or_update_refund( from, receiver, stake_horus_quantity );
    }
 
 
@@ -227,7 +221,7 @@ namespace horuspaytoken {
 
       eosio_assert( unstake_itr != staked_index.end(), "staked row does not exist");
 
-      create_or_update_refund( from, unstake_itr->to, -(unstake_itr->horus_weight), true );
+      create_or_update_refund( from, unstake_itr->to, -(unstake_itr->horus_weight));
 
       staked_index.erase( unstake_itr );
    }

@@ -43,8 +43,7 @@ public:
 
    void stakehorus( account_name from,
                     account_name receiver,
-                    asset        stake_horus_quantity,
-                    bool         transfer );
+                    asset        stake_horus_quantity );
 
    void unstakehorus( account_name from,
                       uint64_t     stake_id );
@@ -66,8 +65,7 @@ private:
 
    void inline create_or_update_refund( account_name& from,
                                         account_name  receiver,
-                                        const asset&  stake_horus_delta,
-                                        bool          transfer );
+                                        const asset&  stake_horus_delta );
 
 };
 
