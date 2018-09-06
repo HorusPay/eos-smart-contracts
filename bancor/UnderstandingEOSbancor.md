@@ -113,3 +113,8 @@ typedef eosio::multi_index<N(rammarket), exchange_state> rammarket;
 ```
 
 ### Next step: Look at the exchange_state.cpp to explore how the algorithm works.
+
+
+## Building the horuspay algorithm
+
+Add a folder to the `eos/contracts/` directory with the same name as your .cpp contract. In this example, we will create a folder named horusbancor/ that contains the horusbancor.cpp and horusbancor.hpp files needed to write the bancor smart contract. We will use these two files to genrate the .abi and .wasm files needed to upload the smart contract to the eosio blockchain by adding a  CMakeLis.txt file to the `horusbancor/` directory within the `eos/contracts/` folder.
