@@ -232,8 +232,6 @@ namespace horuspaytoken {
    *      10.0000 HORUS * 0.00023 = 0.0023 ECASH
    ***********************************************************************************/
    void horustokenio::claimreward( account_name owner, uint64_t stake_id ) {
-      require_auth( owner );
-
       asset    reward;
       int64_t  reward_amount  = 0;
       time     rollover_delta = 0;
@@ -241,6 +239,7 @@ namespace horuspaytoken {
       staked_horus_table staked_index( _self, owner );
       auto stake_itr = staked_index.find( stake_id );
 
+      require_auth( stake_itr->to );
       eosio_assert( stake_itr != staked_index.end() , "stake id does not exist" );
       eosio_assert( stake_itr->id == stake_id ,  "failed to retrieved stake id" );
 
