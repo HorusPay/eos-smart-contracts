@@ -208,7 +208,6 @@ namespace horuspaytoken {
 
       delegate_horus( from, receiver, stake_horus_quantity );
       update_user_resources( from, stake_horus_quantity );
-      create_or_update_refund( from, receiver, stake_horus_quantity );
    }
 
 
