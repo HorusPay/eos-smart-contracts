@@ -54,19 +54,26 @@ echo "---------- Creating Accounts ... ----------"
 # create a horustokenio account
 cleos create account eosio ${HORUS_AUTH_ACCT} ${OWNER_PUBLIC_KEY}
 
-
 ################################ Now, upload some contracts #################
 # upload the bios contract and the eosio.token contract to create a new token
-echo "---------- Loading the bios contract... ----------"
-cleos set contract eosio ${EOS_HOME}/build/contracts/eosio.bios -p eosio@active
+# echo "---------- Loading the bios contract... ----------"
+# cleos set contract eosio ${EOS_HOME}/build/contracts/eosio.bios -p eosio@active
 
 echo "---------- Loading the horustokenio contract ------"
-cleos set contract eosio ${EOS_CONTRACTS_HOME}/horustokenio -p eosio
+# cleos set contract eosio ${EOS_CONTRACTS_HOME}/eosio.token
+cleos set contract eosio ${EOS_CONTRACTS_HOME}/horustokenio horustokenio.wasm horustokenio.abi
 
 
 echo "---------- Create a account for horustokenio contract ------"
 cleos create account ${HORUS_AUTH_ACCT} ${TEST_ACCT1} ${OWNER_PUBLIC_KEY}
+
+
 # create a new token
+
+echo "---------- Issue HORUS to account from horustokenio contract ------"
+cleos push action ${HORUS_AUTH_ACCT} issue '["${TEST_ACCT1}", "100.000 HORUS", "memo"]'
+
+
 # echo "---------- Creating a new token ... -------------"
 # bash ${EOS_SCRIPTS_HOME}/actions/create_token.sh
 

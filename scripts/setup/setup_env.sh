@@ -6,8 +6,11 @@
 
 # USAGE: Set the path (HORUS_HOME) of all your scripts relative to the Horuspay directory
 HORUS_HOME="${HOME}/repos/Horuspay"
+EOS_CONTRACTS_HOME="${HOME}/eos/contracts"
 
 SCRIPTS_HOME="${HORUS_HOME}/eos-smart-contracts/scripts"
+CONTRACTS_HOME="${HORUS_HOME}/eos-smart-contracts"
+
 CONTRACTS_HOME="${HORUS_HOME}/eos-smart-contracts"
 
 ## keys used for development ############################################

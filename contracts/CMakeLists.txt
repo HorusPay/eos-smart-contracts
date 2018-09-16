@@ -36,6 +36,7 @@ add_subdirectory(tic_tac_toe)
 add_subdirectory(payloadless)
 add_subdirectory(horustokenio)
 add_subdirectory(horusxportal)
+add_subdirectory(horusbancor)
 
 file(GLOB SKELETONS RELATIVE ${CMAKE_SOURCE_DIR}/contracts "skeleton/*")
 
