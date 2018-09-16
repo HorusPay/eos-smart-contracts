@@ -1,18 +1,22 @@
 #!/bin/bash
 # @author gunnar pope
+
 # modified code from the brilliant work of @scott-schechter, horuspay.io. Thanks scott!
 # This file is designed to be a stand alone script so all you need to do is to
 # set the paths for the Variable Setup below and it should work.
+
+# Notes:
+# 1) This script assumes that you are running the horustokenio contract is
+# placed in the ~/eos/contracts/ folder. 
+
+# 2) You may have to move the horusdev.wallet into your ~/eosio-wallet/ folder for the script to run. 
+# The keys for the eosio system account and the owner/active keys are imported into that wallet. 
 
 ################################# Variable Setup #########################
 
 # USAGE: Set the path (HORUS_HOME) of all your scripts relative to the Horuspay directory
 HORUS_HOME="${HOME}/repos/Horuspay"
 EOS_CONTRACTS_HOME="${HOME}/eos/contracts"
-
-# the location of this script folder
-SCRIPTS_HOME="${HORUS_HOME}/eos-smart-contracts/scripts"
-CONTRACTS_HOME="${HORUS_HOME}/eos-smart-contracts"
 
 ## keys used for development ############################################
 
@@ -21,7 +25,9 @@ EOSIO_PRIVATE_KEY='5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3'
 EOSIO_PUBLIC_KEY='EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV'
 
 # the default wallet keys are:
-WALLET_PASSWORD='PW5Jw89KejypFTVNLsBg8FnvASPAJhoaJYxAK7d4EU7tLQX6bt7V1'
+# WALLET_PASSWORD='PW5Jw89KejypFTVNLsBg8FnvASPAJhoaJYxAK7d4EU7tLQX6bt7V1'
+# the wallet <horusdev.wallet> password
+WALLET_PASSWORD='PW5JwVhqEgWWaAqGpj1u6oRwzcq71T3LFPPz7mKSUQuErugN4TGN6'
 
 # the default owner and active keys are
 OWNER_PRIVATE_KEY='5KHrknL6tADdwF8JTFSjAjGfFUAKtLiDdSQL24MokRCvkh7Fn9k'
@@ -47,7 +53,7 @@ sleep 5.0
 
 # Open your wallet. (If this is the first time, you may have to create a new default.wallet using the keys provided in setup/setup_env.sh)
 echo "---------- Unlocking Default Wallet ... ----------"
-cleos wallet unlock --password ${WALLET_PASSWORD}
+cleos wallet unlock -n horusdev --password ${WALLET_PASSWORD}
 
 # create some accounts (acct1 and acct2), set in setup/setup_env.sh
 echo "---------- Creating Accounts ... ----------"
